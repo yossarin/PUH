@@ -1,3 +1,5 @@
+import Data.Char
+
 {-
   Homework Assignment #1
   Vlatko Klabucar
@@ -49,6 +51,9 @@ Exercise #4
   This function returns a sorted list of given numbers in ascending order.
   The main idea is that if we know the smallest number, then one comparison 
   between the remaining two would give the second smallest and the largest number.
+  
+  PLEASE GIVE ME FEEDBACK: Can this function be written better in respect to the indentation
+  and style in general, looking at it I find it a bit confusing.
 -}
 
 ord3 x y z = 
@@ -59,4 +64,35 @@ ord3 x y z =
     if x <= z then [y,x,z] else [y,z,x]  -- ok, y is the smallest
   else 
   if x <= y then [z,x,y] else [z,y,x]    -- ok, z is the smallest
+
   
+{-
+Exercise #5
+  Using 2-tuples to represent vectors in 2D space, as (x,y),
+  the following operators are implemented:
+-}
+
+norm (x,y) = sqrt (x*x + y*y)
+
+add (x1,y1) (x2,y2) = (x1 + x2, y1 + y2)
+
+scalarMult (x,y) val = (x*val, y*val)
+
+dot (x1,y1) (x2,y2) = x1*x2 + y1*y2
+
+
+{-
+Exercise #6
+  Uses function ord located in Data.Char module imported on the top.
+-}
+
+asciiRange a b = zip [a..b] (map ord [a..b])
+
+
+{-
+Exercise #7
+  Uses functions ord and chr located in Data.Char module 
+  imported on the top.
+-}
+
+incn x str = [chr (y + x) | y <- map ord str]
