@@ -2,7 +2,6 @@ import Data.Char
 
 {-
   Homework Assignment #1
-  Vlatko Klabucar
 -}
 
 
