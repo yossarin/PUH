@@ -86,11 +86,27 @@ isNonEmpty (_:_) = True
 
 longerThan n xs = isNonEmpty $ drop n xs
 
-returnShorterListFirst l1 l2 
-  | longerThan 
+returnShorterListFirst l1 l2 n
+  | longerThan n l1 && longerThan n l2 = returnShorterListFirst l1 l2 (n+100)
+  | longerThan n l1 == False = (l1,l2)
+  | longerThan n l2 == False = (l2,l1)
+  
+isFirstListShorter l1 l2 n
+ | longerThan n l1 && longerThan n l2 = isFirstListShorter l1 l2 (n+100)
+ | longerThan n l1 == False = True
+ | longerThan n l2 == False = False
 
 intersectUnsafe (l1, l2) = [el | el <- l1, el `elem` l2]
 
-intersect’ l1 l2
+differenceUnsafe (l1, l2) = [el | el <- l1, el `notElem` l2]
+
+intersect' l1 l2
   | l1 == [] || l2 == [] = [] 
-  | othrwise = [el | el <- ]
+  | otherwise = intersectUnsafe $ returnShorterListFirst l1 l2 100
+ 
+difference l1 l2
+  | l1 == [] = []
+  | l2 == [] = l1
+  | isFirstListShorter l1 l2 100 = [el | el <- l1, el `notElem` intersect' l1 l2]
+  
+  
