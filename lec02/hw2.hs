@@ -109,4 +109,42 @@ difference l1 l2
   | l2 == [] = l1
   | isFirstListShorter l1 l2 100 = [el | el <- l1, el `notElem` intersect' l1 l2]
   
-  
+{- Exercise #8
+-}
+
+isWellFormed l | l == [[]] = False
+               | otherwise = length (nub [length e | e <- l ])== 1
+
+size m | not $ isWellFormed m = error "Matrix is malformed"
+       | otherwise = (length m, length (m!!1))
+
+getElement m i j 
+  | not $ isWellFormed m = error "Matrix is malformed"
+  | i >= length m || j >= length (m!!0) || i < 0 || j < 0 
+  = error "Index out of bounds"
+  | otherwise = m!!i!!j
+
+getRow m i
+  | not $ isWellFormed m = error "Matrix is malformed"
+  | i >= length m || i < 0 = error "Index out of bounds"
+  | otherwise = m!!i
+
+getCol m j 
+  | not $ isWellFormed m = error "Matrix is malformed"
+  | j >= length (m!!0) || j < 0 = error "Index out of bounds"
+  | otherwise = [head col | col <- m]
+
+addLists l1 l2 = [fst z + snd z | z <- zip l1 l2]
+
+addMatrices m1 m2 
+  | not $ isWellFormed m1 && isWellFormed m2 = error "Matrix is malformed"
+  | length m1 /= length m2 || length (m1!!0) /= length (m2!!0) = error "Matrices are not of equal size"
+  | otherwise = [addLists (fst z) (snd z) | z <- zip m1 m2] 
+
+transpose' m 
+  | not $ isWellFormed m = error "Matrix is malformed"
+transpose' []             = []
+transpose' ([]   : xss)   = transpose xss
+transpose' ((x:xs) : xss) = (x : [h | (h:_) <- xss]) : transpose (xs : [ t | (_:t) <- xss])
+
+
