@@ -141,6 +141,7 @@ addMatrices m1 m2
   | length m1 /= length m2 || length (m1!!0) /= length (m2!!0) = error "Matrices are not of equal size"
   | otherwise = [addLists (fst z) (snd z) | z <- zip m1 m2] 
 
+
 transpose' []             = []
 transpose' ([]   : xss)   = transpose' xss
 transpose' ((x:xs) : xss) 
@@ -152,4 +153,5 @@ multMatrices m1 m2
   | not $ isWellFormed m1 && isWellFormed m2 = error "Matrix is malformed"
   | not $ length (m1!!0) == length m2 = error "Incompatible matrix dimensions"
   | otherwise = [[ sum $ zipWith (*) m1r m2c | m2c <- (transpose m2)] | m1r <- m1] 
+
 
