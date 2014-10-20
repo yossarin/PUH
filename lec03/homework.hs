@@ -3,6 +3,7 @@ Third homework.
 -}
 
 import Data.Char
+import Data.List
 
 pairToList :: (a,a) -> [a]
 pairToList (a,b) = [a,b]
@@ -45,8 +46,31 @@ mask s m = [e | (e,b) <- zip s $ take (length s) (cycle m), b == '1']
 type Point = (Int, Int)
 type Friend = (Point, String)
 
--- distance :: Point -> Point -> Float
-distance (x1, y1) (x2, y2) = sqrt $ (x1-x2)^2 + (y1-y2)^2
--- findFriend :: Point -> [Friend] -> String
+distance :: Floating a => Point -> Point -> a
+distance (x1, y1) (x2, y2) = sqrt $ fromIntegral $ (x1-x2)^2 + (y1-y2)^2
+
+findFriend :: Point -> [Friend] -> String
 findFriend _ [] = error "Nobody exists to be your friend"
 findFriend p l = snd $ snd $ minimum $ zip [distance p (fst e) | e <- l] l
+
+mulTable :: Int -> [[Int]]
+mulTable n 
+  | n < 1 = error "Given number lesser than 1"
+  | otherwise = [[x*j | x <- i ] | i <- [[1..n]], j <- [1..n]]
+  
+leftpad :: Show a => Int -> a -> String
+leftpad n el 
+  | n < 0 = error "Cannot pad to negative length"
+  | length (show el) > n = error $ "102 does not fit into " ++ show n ++ " characters"
+  | otherwise = (take (n - (length (show el))) (cycle " ")) ++ (show el)
+
+  
+prettyTable :: Show a => [[a]] -> IO ()
+prettyTable l = do
+  let maxLen = maximum [length $ show e | e <- concat l]
+  putStrLn $ intercalate "\n" [intercalate " " [ leftpad maxLen e | e <- row] | row <- l]
+  
+  
+  
+  
+  
