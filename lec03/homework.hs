@@ -106,7 +106,11 @@ readCSV delim filePath = do
   f <- readFile filePath
   return $ parseCSV delim f
   
-  
+
+writeCSV :: Separator -> FilePath -> CSV -> IO ()
+writeCSV delim filePath csv = do
+  io <- writeFile filePath $ showCSV delim csv
+  return io
   
   
   
