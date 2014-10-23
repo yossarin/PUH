@@ -112,10 +112,28 @@ writeCSV delim filePath csv = do
   io <- writeFile filePath $ showCSV delim csv
   return io
   
+
+wc :: FilePath -> IO ()
+wc fp = do
+  f <- readFile fp
+  putStrLn $ (show $ length $ splitOn "\n" f)++" "++
+             (show $ length $ words f)++" "++
+             (show $ length f)
+
+paste :: FilePath -> FilePath -> IO ()
+paste fp1 fp2 = do
+  f1 <- readFile fp1
+  f2 <- readFile fp2
+  putStrLn $ intercalate "\n" [l1++"\t"++l2 | (l1,l2) <- zip (splitOn "\n" f1) (splitOn "\n" f2)]
   
-  
-  
-  
-  
-  
-  
+
+cut :: String -> Int -> FilePath -> IO ()
+cut delim i fp = do
+  f <- readFile fp
+  putStrLn $ intercalate "\n" [(splitOn delim ln)!!(i-1) | ln <- lines f]
+
+
+
+
+
+
