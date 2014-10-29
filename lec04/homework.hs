@@ -1,4 +1,4 @@
-
+import Data.List
 
 {-
     1. assignment solved with a simple helper function.
@@ -59,3 +59,50 @@ pairs     xs = [(xs!!x, xs!!y) | x <- [0..(len - 2)], y <- [(x + 1)..(len - 1)] 
 -}
 shortestSub :: Eq a => [a] -> [a]
 shortestSub [] = []
+shortestSub l  = concat $ take 1 [e | e <- drop 1 (inits l), (take len (cycle e)) == l]
+                   where len = length l
+				   
+{-
+    6. 
+-}
+type Timestamp = [Int]
+
+-- (a) isValidTimestamp checks if a timestamp contains valid values.
+isValidTimestamp :: Timestamp -> Bool
+isValidTimestamp        [] = False
+isValidTimestamp       [s] = s >= 0
+isValidTimestamp    [m, s] = s >= 0 && m >= 0 && m <= 59
+isValidTimestamp [h, m, s] = s >= 0 && m >= 0 && m <= 59 && h >= 0 && h <= 23
+isValidTimestamp         _ = False
+
+-- (b) timestampToSec converts a given timestamp to seconds.
+toSec :: Timestamp -> Int
+toSec       [s] = s
+toSec    [m, s] = m*60 + s
+toSec [h, m, s] = h*60*60 + m*60 + s
+
+timestampToSec :: Timestamp -> Int
+timestampToSec tstmp | isValidTimestamp tstmp = toSec tstmp
+                     | otherwise              = error "Invalid timestamp"
+					 
+-- (c) timeDiff calculates a temporal difference, in seconds, between two timestamps.
+timeDiff :: Timestamp -> Timestamp -> Int
+timeDiff a b = abs $ timestampToSec a - timestampToSec b
+
+
+{-
+    7. 
+-}
+
+-- (a) counts given a list of elements,	
+--     returns a list of pairs of (element, number of occurrences of the element)
+counts :: Ord a => [a] -> [(a, Int)]
+counts l = [(e!!0, length e) | e <- group $ sort l]
+
+-- (b) This hint sucks -> Hint: count the number of an element’s occurences in the list.
+group' :: Eq a => [a] -> [[a]]
+group' l = [[e | e <- l, e == el] | el <- nub l ]
+
+-- (c) 
+counts' :: Eq a => [a] -> [(a, Int)]
+counts' xs = [(e!!0, length e) | e <- group' xs]
