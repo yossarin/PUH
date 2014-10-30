@@ -106,3 +106,80 @@ group' l = [[e | e <- l, e == el] | el <- nub l ]
 -- (c) 
 counts' :: Eq a => [a] -> [(a, Int)]
 counts' xs = [(e!!0, length e) | e <- group' xs]
+
+
+{-
+    8. Lights Out!
+-}
+type Grid = [String]
+
+-- (a) lightsOutLite takes a Grid and computes the minimal number of moves 
+--     to complete a simplified version of Lights Out!.
+isWellFormed :: Grid -> Bool
+isWellFormed l | l == [[]] = False
+               | otherwise = length (nub [length e | e <- l ])== 1
+			   
+lightsOutLite :: Grid -> Int
+lightsOutLite xss | isWellFormed xss = length [e | e <- concat xss, e == '1']
+                  | otherwise        = error "Broken grid!"
+				  
+-- (b) TODO: lightsOut computes the minimal number of moves necessary 
+--     to complete the original version of the game.
+
+
+{-
+    8. One Edits, Two Edits !
+-}
+-- testing the oneEdits and twoEdits functions
+compareToFile :: (String -> [String]) -> String -> FilePath -> IO Bool
+compareToFile f s file = do
+  list <- readFile file
+  let l = read list :: [String]
+  putStrLn $ show $ (f s) \\ l
+  putStrLn $"Function ln:" ++ show (length (f s )) ++ " || file ln: " ++ show (length l)
+  return $ {-length (f s ) == length l -- &&-} and [e `elem` l | e <- (f s)]
+  
+testOneEdits :: IO Bool
+testOneEdits = compareToFile oneEdits "hi" "oneEdits.txt"
+
+testTwoEdits :: IO Bool
+testTwoEdits = compareToFile twoEdits "hi" "twoEdits.txt"
+
+-- (a) Function oneEdits, given a String, returns all possible
+--     strings that are one edit–distance away from it.
+oneEdits :: String -> [String]
+oneEdits s = nub $ [l!!i ++ [e] ++ r!!i | i <- [0..length s], e <- ['a'..'z']] ++ 
+             [l!!i ++ r!!(i+1) | i <- [0..(length s - 1)]] ++         
+			 [l!!i ++ [e] ++ r!!(i+1) | i <- [0..(length s - 1)], e <- ['a'..'z'], e /= s!!i] ++
+			 [l!!i ++ [s!!(i+1),s!!i] ++ r!!(i+2) | i <- [0..(length s - 2)]]
+               where l = inits s
+                     r = tails s 
+{-f1 s = [l!!i ++ [e] ++ r!!i | i <- [0..length s], e <- ['a'..'z']]
+f2 s = [l!!i ++ [e] ++ r!!(i+1) | i <- [0..(length s - 1)], e <- ['a'..'z'], e /= s!!i]
+	where l = inits s
+          r = tails s -}
+
+twoEdits :: String -> [String]
+twoEdits _ = []
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
