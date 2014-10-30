@@ -135,9 +135,9 @@ compareToFile :: (String -> [String]) -> String -> FilePath -> IO Bool
 compareToFile f s file = do
   list <- readFile file
   let l = read list :: [String]
-  putStrLn $ show $ (f s) \\ l
-  putStrLn $"Function ln:" ++ show (length (f s )) ++ " || file ln: " ++ show (length l)
-  return $ {-length (f s ) == length l -- &&-} and [e `elem` l | e <- (f s)]
+  -- putStrLn $ show $   l \\ (f s)
+  -- putStrLn $"Function ln:" ++ show (length (f s )) ++ " || file ln: " ++ show (length l)
+  return $ and [l!!i `elem` (f s) | i <- [0..(length s - 1)]]
   
 testOneEdits :: IO Bool
 testOneEdits = compareToFile oneEdits "hi" "oneEdits.txt"
@@ -151,24 +151,33 @@ oneEdits :: String -> [String]
 oneEdits s = nub $ [l!!i ++ [e] ++ r!!i | i <- [0..length s], e <- ['a'..'z']] ++ 
              [l!!i ++ r!!(i+1) | i <- [0..(length s - 1)]] ++         
 			 [l!!i ++ [e] ++ r!!(i+1) | i <- [0..(length s - 1)], e <- ['a'..'z'], e /= s!!i] ++
-			 [l!!i ++ [s!!(i+1),s!!i] ++ r!!(i+2) | i <- [0..(length s - 2)]]
+			 [l!!i ++ [s!!(i+1),s!!i] ++ r!!(i+2) | i <- [0..(length s - 2)]] ++ [s]
                where l = inits s
                      r = tails s 
-{-f1 s = [l!!i ++ [e] ++ r!!i | i <- [0..length s], e <- ['a'..'z']]
-f2 s = [l!!i ++ [e] ++ r!!(i+1) | i <- [0..(length s - 1)], e <- ['a'..'z'], e /= s!!i]
-	where l = inits s
-          r = tails s -}
 
+-- (b) This is really no much work.
 twoEdits :: String -> [String]
-twoEdits _ = []
+twoEdits s = nub $ concat [oneEdits e | e <- oneEdits s]
 
 
+{-
+    9. Pseudo-randomness
+-}
+type Seed = Int
+-- (a) fromSeed generates a pseudo-random integer given a seed value
+fromSeed :: Seed -> Int
+fromSeed seed = (22695477*seed + 1) `mod` 2^32
 
-
-
-
-
-
+-- (b)
+guess :: Seed -> Int -> IO Ordering
+guess seed lim = do
+  let number = fromSeed seed `mod` (lim + 1)
+  putStr "guess: "
+  line <- getLine
+  let g = read line
+  if g == number then return EQ 
+  else if g < number then return LT
+  else return GT
 
 
 
