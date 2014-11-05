@@ -103,3 +103,16 @@ chunkInto n xs
   | otherwise         = take t xs : chunkInto (n-1) (drop t xs)
     where t = (truncate $ fromIntegral (length xs) / fromIntegral n)
 
+{-
+  4.) function rpnCalc that takes a mathematical expression written in
+      Reverse Polish notation and calculates its result. 
+-}
+
+-- rpnCalc :: String -> Int
+
+
+
+
+
+
+
