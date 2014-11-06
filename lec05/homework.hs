@@ -1,4 +1,4 @@
-
+import Data.Char
 
 
 {-
@@ -106,10 +106,17 @@ chunkInto n xs
 {-
   4.) function rpnCalc that takes a mathematical expression written in
       Reverse Polish notation and calculates its result. 
+	  Inspiration: http://learnyouahaskell.com/functionally-solving-problems
 -}
 
--- rpnCalc :: String -> Int
-
+rpnCalc :: String -> Int
+rpnCalc =  head . foldl foldingFunction [] 
+    where   foldingFunction (x:y:ys) '*' = (x * y):ys
+            foldingFunction (x:y:ys) '+' = (x + y):ys
+            foldingFunction (x:y:ys) '-' = (y - x):ys
+            foldingFunction (x:y:ys) '^' = (y ^ x):ys
+            foldingFunction (x:y:ys) '/' = (y `div` x):ys
+            foldingFunction xs numberString = digitToInt numberString:xs
 
 
 
