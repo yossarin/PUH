@@ -1,4 +1,5 @@
 import Data.Char
+import Data.List
 
 
 {-
@@ -109,14 +110,71 @@ chunkInto n xs
 	  Inspiration: http://learnyouahaskell.com/functionally-solving-problems
 -}
 
+op :: [Int] -> Char -> [Int]
+op xs@(x:y:ys) c = case c of 
+  '*' -> (x * y):ys
+  '+' -> (x + y):ys
+  '-' -> (y - x):ys
+  '^' -> (y ^ x):ys
+  '/' -> (y `div` x):ys
+  _   -> if isDigit c then digitToInt c:xs else error "Invalid RPN expression"
+op xs digit = if isDigit digit then digitToInt digit:xs else error "Invalid RPN expression"
+
 rpnCalc :: String -> Int
-rpnCalc =  head . foldl foldingFunction [] 
-    where   foldingFunction (x:y:ys) '*' = (x * y):ys
-            foldingFunction (x:y:ys) '+' = (x + y):ys
-            foldingFunction (x:y:ys) '-' = (y - x):ys
-            foldingFunction (x:y:ys) '^' = (y ^ x):ys
-            foldingFunction (x:y:ys) '/' = (y `div` x):ys
-            foldingFunction xs numberString = digitToInt numberString:xs
+rpnCalc str | str == "" = 0
+            | otherwise =  head $ foldl op [] str
+
+{-
+  5.) 
+-}
+
+-- (a) function gcd' calculates the greatest common divisor of two
+--     integers, using explicit recursion and the Euclidean algorithm.
+
+gcd' :: Int -> Int -> Int
+gcd' a b | b == 0 = a
+         | r == 0 = abs b
+         | otherwise = gcd' b r
+  where q = div a b 
+        r = mod a b
+		
+-- (b) function gcdAll calculates the greatest common divisor of an
+--     arbitrary number of integers given in a list.
+gcdAll :: [Int] -> Int
+gcdAll [] = error "Cannot compute gcd of an empty list"
+gcdAll xs = minimum $ [gcd' (l!!j) (l!!i) | i <- [0..len], j <- [i..len]]
+  where l   = sort xs
+        len = length xs - 1
+		
+-- (c) function extendedGcd uses the extended Euclidean algorithm
+--     to calculate the Bezout coefficients along with the gcd.
+
+gcdEx :: Int -> Int -> Int -> Int -> Int -> Int -> (Int,Int,Int)
+gcdEx a b s0 t0 s1 t1 | b == 0 = (s1, t1, a)
+                      | r == 0 = (s1, t1, abs b)
+                      | otherwise = gcdEx b r s1 t1 (s0 - s1*q) (t0 - t1*q)
+               where q = div a b 
+                     r = mod a b
+		
+extendedGcd :: Int -> Int -> (Int,Int,Int)
+extendedGcd a b = gcdEx a b 1 0 0 1
+
+
+{-
+  6.) a function isBipartite that takes an unweighted graph 
+      represented as an adjacency list and checks whether the 
+	  given graph is a bipartite graph. 
+-}
+type AdjacencyList = [Int]
+type Graph = [AdjacencyList]
+
+isBipartite :: Graph -> Bool
+isBipartite g | intersect a b == [] = True
+              | otherwise          = False
+			   where (a, b) = color g [] []
+        
+color [] a b     = (a, b)
+color (x:xs) a b = color xs (head x : a) (tail x ++ b)
 
 
 
