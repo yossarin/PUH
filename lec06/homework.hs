@@ -43,4 +43,4 @@ reduce1 f (x:xs) = f x (reduce1 f xs)
 --     just the last result.
 scan :: (a -> b -> a) -> a -> [b] -> [a]
 scan _ z []     = [z]
-scan f z (x:xs) =  z: scan f (f z x) xs
+scan f z (x:xs) =  z : scan f (f z x) xs
