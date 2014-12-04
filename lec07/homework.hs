@@ -139,9 +139,9 @@ isNotInteger s = case reads s :: [(Integer, String)] of
   [(_, "")] -> False
   _         -> True
   
--- b)numberOfPlays ["10 Different 02 In Silico","16 Propane Nightmares 03 In Silico","14 Showdown 01 In Silico","9 Visions 04 In Silico"]
-{-numberOfPlays :: [String] -> Integer
-numberOfPlays = sum . foldl1 (++ " " ++ findNoPlays) 
+-- b)
+numberOfPlays :: [String] -> Integer
+numberOfPlays = foldl1 (+) . map findNoPlays 
 
-findNoPlays :: String -> String
-findNoPlays =  head . dropWhile(isNotInteger) . words-}
+findNoPlays :: String -> Integer
+findNoPlays =  (read) . head . dropWhile(isNotInteger) . words
