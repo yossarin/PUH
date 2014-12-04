@@ -1,5 +1,6 @@
 import Data.Ord
 import Data.List
+import Data.Ord
 
 {-
   1.) My versions of existing Data.List higher order functions :)
@@ -120,4 +121,27 @@ groupByDist xs ys = map (\y->formGroup (filterNeighbour y, y)) ys
 --    for every group and use those as the centroids in the next step. Stop
 --    when you've exhausted the number of iterations or when the next centroids 
 --    are the same as the last. Return the centroids and their accompanying points.
---cluster :: [Point] -> Int -> Int -> [(Point, [Point])]
+-- TODO: cluster :: [Point] -> Int -> Int -> [(Point, [Point])]
+
+
+{-
+  5.)
+  
+-}
+-- a) function sortTracks sorts a list of strings formatted like 
+--    "TrackTitle TrackNo AlbumName" by track number
+sortTracks :: [String] -> [String]
+sortTracks =  sortBy (comparing (findTrackNo . words))
+
+findTrackNo = head . dropWhile(isNotInteger)
+
+isNotInteger s = case reads s :: [(Integer, String)] of
+  [(_, "")] -> False
+  _         -> True
+  
+-- b)numberOfPlays ["10 Different 02 In Silico","16 Propane Nightmares 03 In Silico","14 Showdown 01 In Silico","9 Visions 04 In Silico"]
+{-numberOfPlays :: [String] -> Integer
+numberOfPlays = sum . foldl1 (++ " " ++ findNoPlays) 
+
+findNoPlays :: String -> String
+findNoPlays =  head . dropWhile(isNotInteger) . words-}
