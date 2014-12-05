@@ -1,6 +1,6 @@
 import Data.Ord
 import Data.List
-import Data.Ord
+import Data.Char
 
 {-
   1.) My versions of existing Data.List higher order functions :)
@@ -37,7 +37,7 @@ efficientSortBy f xs = snd $ unzip $ sortBy (comparing fst) pairs
 {-
   3.) Stemming is the process of reducing inflected words to their stem,
       or root form, for easier word identification. It is typically done
-	  by discarding the word suffix.
+      by discarding the word suffix.
 -}
 
 -- a) stemming function stemmer1 discards the suffix up to the last
@@ -68,7 +68,7 @@ stemmer2 suffixes word | length stem < prefixl = word
 stemmer3 :: [String] -> String -> String
 stemmer3 suffixes word | word == stem2 = stemmer1 word
                        | otherwise     = stem2
-					   where stem2 = stemmer2 suffixes word
+                       where stem2 = stemmer2 suffixes word
 
 -- d) function testStemmer tests the precision of a stemmer. It takes
 --    a sample as a list of pairs (word, correctSuffix) and a stemming function,
@@ -119,16 +119,26 @@ groupByDist xs ys = map (\y->formGroup (filterNeighbour y, y)) ys
 --    k and a number of iterations i. It should take the first k elements of
 --    xs as the initial "centroids". In each step, calculate the new centroids
 --    for every group and use those as the centroids in the next step. Stop
---    when you've exhausted the number of iterations or when the next centroids 
+--    when you've exhausted the number of iterations or when the next centroids
 --    are the same as the last. Return the centroids and their accompanying points.
--- TODO: cluster :: [Point] -> Int -> Int -> [(Point, [Point])]
+cluster :: [Point] -> Int -> Int -> [(Point, [Point])]
+cluster [] _ _                 = error "Cannot cluster for no points"
+cluster xs k _ | length xs < k = error "The number of groups cannot be greater than the number of elements"
+cluster xs k i                 = clusterAcc xs i (take k xs)
+
+clusterAcc :: [Point] -> Int -> [Point] -> [(Point, [Point])]
+clusterAcc xs i last_centroids | last_centroids == centroids || i == 0 = clusters
+                               | otherwise                             = clusterAcc xs (i-1) centroids
+                               where clusters  = groupByDist xs last_centroids
+                                     centroids = map (centroid . snd) clusters
+
 
 
 {-
   5.)
-  
+
 -}
--- a) function sortTracks sorts a list of strings formatted like 
+-- a) function sortTracks sorts a list of strings formatted like
 --    "TrackTitle TrackNo AlbumName" by track number
 sortTracks :: [String] -> [String]
 sortTracks =  sortBy (comparing (findTrackNo . words))
@@ -138,10 +148,88 @@ findTrackNo = head . dropWhile(isNotInteger)
 isNotInteger s = case reads s :: [(Integer, String)] of
   [(_, "")] -> False
   _         -> True
-  
+
 -- b)
 numberOfPlays :: [String] -> Integer
-numberOfPlays = foldl1 (+) . map findNoPlays 
+numberOfPlays = foldl1 (+) . map findNoPlays
 
 findNoPlays :: String -> Integer
 findNoPlays =  (read) . head . dropWhile(isNotInteger) . words
+
+
+{-
+  6.) function doYouSpeak computes whether the string consists of
+      words in the dictionary. The dictionary is provided in the first
+      argument as a list of strings.
+-}
+
+doYouSpeak :: [String] -> String -> Bool
+doYouSpeak _   [] = True
+doYouSpeak xss xs |  maxP == [] = False
+                  | otherwise   = doYouSpeak xss (drop (length maxP) xs)
+                  where maxP = maxPref xs xss
+
+-- is this word at the beginning of this str?
+isHead :: String -> String -> Bool
+isHead str word = word == take (length word) str
+
+-- find longest prefix of str among prefixes
+maxPref :: String -> [String] -> String
+maxPref str prefixes = case prefs of
+    [] -> []
+    _  -> maximum $ prefs
+    where prefs = filter (isHead (map toLower str)) $ (map . map) toLower prefixes
+
+{-
+  7.) function histogram takes a string and returns an ASCII-formatted histogram of
+      occurring letters. Filter out non-letter characters and ignore the casing of letters.
+      The output is formatted as shown in the examples given below.
+
+      $ histogram "Smeg - head"
+          *
+      *  ** ** * *
+      --------------------------
+      abcdefghijklmnopqrstuvwxyz
+-}
+-- counts occurrence of the letters
+countLetters :: String -> [(Int, Char)]
+countLetters = map (\xs -> (length xs, head xs)) . group . sort . filter (isAlpha) . map toLower
+
+-- put letters of alphabet on appropriate positions
+putLetters :: [Char] -> String
+putLetters xs = map (\x -> if elem x xs then '*' else  ' ') ['a'..'z']
+
+histogram :: String -> IO ()
+histogram ""  = do
+    putStrLn $ map (\_ -> '-') ['a'..'z']
+    putStrLn ['a'..'z']
+
+histogram str = do
+    let max = maximum . map fst $ countLetters str
+    let letterOcc = countLetters str
+    mapM_ (\x -> putStrLn $ putLetters . map snd $ filter ((>= x) . fst) letterOcc) [max, (max - 1)..1]
+    putStrLn $ map (\_ -> '-') ['a'..'z']
+    putStrLn ['a'..'z']
+
+{-
+  8.)
+-}
+-- a) Function smooth returns a smoothed version of a given function.
+--    Function f(x) is smoothed by averaging the sum of f(x - dx), f(x) and
+--    f(x + dx). The value dx is accepted as an additional parameter, (the Range).
+type Range = Double
+smooth :: Range -> (Double -> Double) -> Double -> Double
+smooth dx f x = (f (x - dx) + f x + f (x + dx)) / 3
+
+-- b) function nfold applies a given function n times.
+nfold :: Int -> (a -> a) -> a -> a
+nfold 0 f x = x
+nfold n f x = f $ nfold (n - 1) f x
+
+-- c) nsmooth smoothes a given function n times.
+nsmooth :: Int -> Range -> (Double -> Double) -> Double -> Double
+nsmooth n dx f = nfold n (smooth dx f)
+
+
+
+
