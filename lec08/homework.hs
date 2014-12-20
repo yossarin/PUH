@@ -1,5 +1,7 @@
 import Prelude hiding (Left, Right, Up, Down)
 import Data.Maybe (fromJust, isJust)
+import Data.List (delete, groupBy, sort)
+import Data.Bits
 {-
  1.) small domain-specific language for enslaving turtles. 
 -}
@@ -133,3 +135,181 @@ negative (Date d m y) n = case isJust $ date (d+n) m y of
 
 addDays :: Date -> Int -> Date
 addDays dat@(Date d m y) n = if n < 0 then negative dat n else positive dat n
+
+{-
+ 4.) type Pred is a recursive data type that represents a boolean expression.
+     Type constructors And, Or and Not represent boolean operations and the
+     Val constructor to represent a boolean value. The eval function takes a
+     Pred and returns its evaluated Bool value.
+-}
+data Pred a = Val a | And (Pred a) (Pred a) | Or (Pred a)  (Pred a) | Not (Pred a)
+
+eval :: Pred Bool -> Bool
+eval (Val a)   = a
+eval (And a b) = eval a && eval b
+eval (Or a b)  = eval a || eval b
+eval (Not a)   = not $ eval a
+
+{-
+ 5.)
+-}
+
+data StackTraceElement = StackTraceElement 
+  { className  :: String
+  , method     :: String
+  , lineNumber :: Int
+  } deriving (Eq)
+
+instance Show StackTraceElement where
+  show ste = className ste ++ "." ++ method ste ++ ":" ++ (show $ lineNumber ste)
+
+instance Ord StackTraceElement where
+  compare x y = compare (show x) (show y)
+
+type StackTrace = [StackTraceElement]
+
+data RoseTree a = RoseEmpty | RoseTree a [RoseTree a] deriving (Show, Ord, Read)
+
+-- function 
+-- function val returns a value from RoseTree node
+val :: RoseTree a -> a
+val (RoseTree a _) = a
+
+instance (Eq a) => Eq (RoseTree a) where
+  (RoseTree x _) == (RoseTree y _) = x == y  
+
+-- function inserts StackTrace to the RoseTree.
+insert :: StackTrace -> RoseTree StackTraceElement -> RoseTree StackTraceElement
+insert (x:[]) RoseEmpty = RoseTree x []
+insert (x:xs) RoseEmpty = RoseTree x [insert xs RoseEmpty]
+insert (x:z:xs) (RoseTree y ys) | elem rtz ys = RoseTree y (map (\x -> if rtz == x then insert (z:xs) x else x) ys) 
+                                | otherwise                  = RoseTree y (insert (z:xs) RoseEmpty : ys)
+                                where rtz = RoseTree z []
+
+buildTree :: [StackTrace] -> [] (RoseTree StackTraceElement)
+buildTree xs = map (foldr insert RoseEmpty) group
+  where group = groupBy (\x y ->  (head x)== (head y)) $ sort xs
+
+printTree :: (RoseTree StackTraceElement) -> Int -> Int -> String
+printTree (RoseTree x []) n indent = (take (n*indent) $ cycle " ") ++ (show x) ++ "\n"
+printTree (RoseTree x xs) n indent = (take (n*indent) $ cycle " ") ++ (show x) ++ "\n" ++ (concat (map (\x -> printTree x (n+1) indent) xs)) 
+
+combined :: [StackTrace] -> Int -> String
+combined xs n = concat . map (\x -> printTree x 0 n) $ buildTree xs
+ 
+{- test data for exercise 5.) -}
+ste11 = StackTraceElement
+  { className = "Main"
+  , method="main"
+  , lineNumber=12
+  }
+
+ste12 = StackTraceElement
+  { className = "Mapper"
+  , method="map"
+  , lineNumber=44
+  }
+
+ste13 = StackTraceElement
+  { className = "Decoder"
+  , method="prepare"
+  , lineNumber=4
+  }
+
+ste14 = StackTraceElement
+  { className = "Decoder"
+  , method="decode"
+  , lineNumber=234
+  }
+
+st1 = [ste11, ste12, ste13, ste14]
+
+ste21 = StackTraceElement
+  { className = "Main"
+  , method="main"
+  , lineNumber=12
+  }
+
+ste22 = StackTraceElement
+  { className = "Mapper"
+  , method="map"
+  , lineNumber=44
+  }
+
+ste23 = StackTraceElement
+  { className = "Decoder"
+  , method="order"
+  , lineNumber=7
+  }
+
+st2 = [ste21, ste22, ste23]
+
+ste3 = StackTraceElement
+  { className = "Main"
+  , method="run"
+  , lineNumber=33
+  }
+
+st3 = [ste3]
+comb = [st3,st2,st1]
+{- test data for exercise 5.) -}
+
+{-
+ 6.)
+-}
+-- a)  function toGrayCode takes a number in natural binary
+--     representation and returns it in Gray code
+toGrayCode :: (Integral a, Bits a) => a -> a
+toGrayCode x = xor x $ shiftR x 1
+
+-- b)  function fromGrayCode takes a number in Gray code and
+--     returns its natural binary representation.
+fromGrayCode :: (Integral a, Bits a) => a -> a
+fromGrayCode x = fromGrayCodeAcc x (shiftR x 1)
+  where fromGrayCodeAcc x 0    = x
+        fromGrayCodeAcc x mask = fromGrayCodeAcc (xor x mask) (shiftR mask 1)
+
+
+{-
+ 7.)
+-}
+-- a) typeclass Truthy defines types that can be interpreted as boolean
+--    values. 
+class Truthy a where
+  truey  :: a -> Bool
+  falsey :: a -> Bool
+  truey  x = not $ falsey x
+  falsey x = not $ truey x
+
+instance Truthy Bool where
+  truey True = True
+  truey _    = False
+
+instance Truthy Int where
+  falsey 0 = True
+  falsey _ = False
+
+instance Truthy [a] where
+  falsey [] = True
+  falsey _  = False 
+
+-- b) function if' works on instances of Truthy and behaves like the
+--    if-then-else construct
+
+if' :: Truthy p => p -> a -> a -> a
+if' p t f = if (truey p) then t else f
+
+-- c) function assert takes a Truthy value and another argument.
+--    If the fist argument evaluates to truey, it returns the 
+--    second argument. Otherwise it raises an error.
+assert :: Truthy p => p -> a -> a
+assert x y = if truey x then y else error "Assertion failed"
+
+-- d) (&&&) and (|||) functions behave like the (&&) and (||)
+--    functions, but operate on Truthy instances instead of Bool.
+(&&&) :: (Truthy a, Truthy b) => a -> b -> Bool
+(&&&) a b = truey a && truey b
+
+(|||) :: (Truthy a, Truthy b) => a -> b -> Bool
+(|||) a b = truey a || truey b
+
