@@ -2,6 +2,7 @@ import Prelude hiding (Left, Right, Up, Down)
 import Data.Maybe (fromJust, isJust)
 import Data.List (delete, groupBy, sort)
 import Data.Bits
+import Data.Monoid
 {-
  1.) small domain-specific language for enslaving turtles. 
 -}
@@ -313,3 +314,32 @@ assert x y = if truey x then y else error "Assertion failed"
 (|||) :: (Truthy a, Truthy b) => a -> b -> Bool
 (|||) a b = truey a || truey b
 
+{-
+ 8.) 
+-}
+-- a) datatype DiffList holds a concatenation computation
+data DiffList a = DiffList { undiff :: [a] -> [a] }
+
+-- b) function empty constructs an empty DiffList
+empty :: DiffList a
+empty = DiffList id
+
+-- c) function fromList takes a list and returns a DiffList as its
+--    concatenation computation
+fromList :: [a] -> DiffList a
+fromList = DiffList . (++)
+
+-- d) function toList takes a DiffList and returns its 
+--    computation, a concatenated list
+toList :: DiffList a -> [a]
+toList x = undiff x [] 
+
+-- e) function append takes two DiffLists and combines them
+--    into a new DiffList.
+append :: DiffList a -> DiffList a -> DiffList a
+append x y = DiffList (undiff x . undiff y)
+
+-- f) DiffList as an instance of Monoid (wow, this is elegant)
+instance Monoid (DiffList a) where
+  mempty  = empty
+  mappend = append 
